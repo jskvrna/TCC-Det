@@ -1,0 +1,19 @@
+List of changed files:
+pcdet/datasets/augmentor/data_augmentor.py
+pcdet/datasets/kitti/kitti_dataset.py
+pcdet/datasets/dataset.py
+pcdet/models/dense_heads/anchor_head_single.py
+pcdet/models/dense_heads/anchor_head_template.py
+pcdet/models/dense_heads/center_head.py
+pcdet/models/detectors/detector3d_template.py
+pcdet/models/detectors/voxel_rcnn.py
+pcdet/models/roi_heads/roi_head_template.py
+pcdet/models/roi_heads/voxelrcnn_head.py
+pcdet/models/__init__.py
+tools/cfgs/dataset_configs/kitti_dataset.yaml
+tools/cfgs/kitti_models/voxel_rcnn_car.yaml
+tools/cfgs/waymo_models/voxel_rcnn_with_centerhead_dyn_voxel.yaml
+tools/train_utils/optimization/__init__.py
+tools/train_utils/train_utils.py
+tools/demo.py
+tools/train.py

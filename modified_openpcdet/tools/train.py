@@ -1,3 +1,6 @@
+# Modified by: Jan Skvrna for the purpose of the TCC-Det
+# Modified parts are marked with the comment: # Start TCC-Det and # End TCC-Det
+
 import _init_path
 import argparse
 import datetime
@@ -33,7 +36,7 @@ def parse_config():
     parser.add_argument('--sync_bn', action='store_true', default=False, help='whether to use sync bn')
     parser.add_argument('--fix_random_seed', action='store_true', default=False, help='')
     parser.add_argument('--ckpt_save_interval', type=int, default=1, help='number of training epochs')
-    parser.add_argument('--local_rank', type=int, default=None, help='local rank for distributed training')
+    parser.add_argument('--local_rank', type=int, default=0, help='local rank for distributed training')
     parser.add_argument('--max_ckpt_save_num', type=int, default=30, help='max number of saved checkpoint')
     parser.add_argument('--merge_all_iters_to_one_epoch', action='store_true', default=False, help='')
     parser.add_argument('--set', dest='set_cfgs', default=None, nargs=argparse.REMAINDER,
@@ -71,9 +74,6 @@ def main():
         dist_train = False
         total_gpus = 1
     else:
-        if args.local_rank is None:
-            args.local_rank = int(os.environ.get('LOCAL_RANK', '0'))
-            
         total_gpus, cfg.LOCAL_RANK = getattr(common_utils, 'init_dist_%s' % args.launcher)(
             args.tcp_port, args.local_rank, backend='nccl'
         )
@@ -159,8 +159,19 @@ def main():
                     break
                 except:
                     ckpt_list = ckpt_list[:-1]
-
+            
     model.train()  # before wrap to DistributedDataParallel to support fixed some parameters
+    # Start TCC-Det
+    #Turn off the backprop for anything but the FC regression voxel layer.
+    #for module in model.modules():
+    #    x = module.__class__.__name__
+    #    if x.find('BatchNorm') != -1:
+    #        module.eval()
+    #        module.track_running_stats = False
+    #for name, param in model.named_parameters():
+    #    if not (name.startswith('roi_head.reg_fc_layers') or name.startswith('roi_head.reg_pred_layer')):
+    #       param.requires_grad = False
+    # End TCC-Det
     if dist_train:
         model = nn.parallel.DistributedDataParallel(model, device_ids=[cfg.LOCAL_RANK % torch.cuda.device_count()])
     logger.info(f'----------- Model {cfg.MODEL.NAME} created, param count: {sum([m.numel() for m in model.parameters()])} -----------')
@@ -174,34 +185,35 @@ def main():
     # -----------------------start training---------------------------
     logger.info('**********************Start training %s/%s(%s)**********************'
                 % (cfg.EXP_GROUP_PATH, cfg.TAG, args.extra_tag))
-
-    train_model(
-        model,
-        optimizer,
-        train_loader,
-        model_func=model_fn_decorator(),
-        lr_scheduler=lr_scheduler,
-        optim_cfg=cfg.OPTIMIZATION,
-        start_epoch=start_epoch,
-        total_epochs=args.epochs,
-        start_iter=it,
-        rank=cfg.LOCAL_RANK,
-        tb_log=tb_log,
-        ckpt_save_dir=ckpt_dir,
-        train_sampler=train_sampler,
-        lr_warmup_scheduler=lr_warmup_scheduler,
-        ckpt_save_interval=args.ckpt_save_interval,
-        max_ckpt_save_num=args.max_ckpt_save_num,
-        merge_all_iters_to_one_epoch=args.merge_all_iters_to_one_epoch, 
-        logger=logger, 
-        logger_iter_interval=args.logger_iter_interval,
-        ckpt_save_time_interval=args.ckpt_save_time_interval,
-        use_logger_to_record=not args.use_tqdm_to_record, 
-        show_gpu_stat=not args.wo_gpu_stat,
-        use_amp=args.use_amp,
-        cfg=cfg
-    )
-
+    # Start TCC-Det
+    with torch.autograd.set_detect_anomaly(True):
+        train_model(
+            model,
+            optimizer,
+            train_loader,
+            model_func=model_fn_decorator(),
+            lr_scheduler=lr_scheduler,
+            optim_cfg=cfg.OPTIMIZATION,
+            start_epoch=start_epoch,
+            total_epochs=args.epochs,
+            start_iter=it,
+            rank=cfg.LOCAL_RANK,
+            tb_log=tb_log,
+            ckpt_save_dir=ckpt_dir,
+            train_sampler=train_sampler,
+            lr_warmup_scheduler=lr_warmup_scheduler,
+            ckpt_save_interval=args.ckpt_save_interval,
+            max_ckpt_save_num=args.max_ckpt_save_num,
+            merge_all_iters_to_one_epoch=args.merge_all_iters_to_one_epoch,
+            logger=logger,
+            logger_iter_interval=args.logger_iter_interval,
+            ckpt_save_time_interval=args.ckpt_save_time_interval,
+            use_logger_to_record=not args.use_tqdm_to_record,
+            show_gpu_stat=not args.wo_gpu_stat,
+            use_amp=args.use_amp,
+            cfg=cfg
+        )
+    # End TCC-Det
     if hasattr(train_set, 'use_shared_memory') and train_set.use_shared_memory:
         train_set.clean_shared_memory()
 
@@ -227,7 +239,6 @@ def main():
     )
     logger.info('**********************End evaluation %s/%s(%s)**********************' %
                 (cfg.EXP_GROUP_PATH, cfg.TAG, args.extra_tag))
-
 
 if __name__ == '__main__':
     main()

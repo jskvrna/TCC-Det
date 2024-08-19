@@ -1,3 +1,6 @@
+# Modified by: Jan Skvrna for the purpose of the TCC-Det
+# Modified parts are marked with the comment: # Start TCC-Det and # End TCC-Det
+
 from functools import partial
 
 import torch.nn as nn
@@ -53,9 +56,11 @@ def build_scheduler(optimizer, total_iters_each_epoch, total_epochs, last_epoch,
             optimizer, total_steps, optim_cfg.LR, list(optim_cfg.MOMS), optim_cfg.DIV_FACTOR, optim_cfg.PCT_START
         )
     elif optim_cfg.OPTIMIZER == 'adam_cosineanneal':
+        # Start TCC-Det
         lr_scheduler = CosineAnnealing(
-            optimizer, total_steps, total_epochs, optim_cfg.LR, list(optim_cfg.MOMS), optim_cfg.PCT_START, optim_cfg.WARMUP_ITER
+            optimizer, total_steps, total_epochs, optim_cfg.LR, list(optim_cfg.MOMS), optim_cfg.PCT_START, optim_cfg.WARMUP_EPOCH * total_iters_each_epoch
         )
+        # End TCC-Det
     else:
         lr_scheduler = lr_sched.LambdaLR(optimizer, lr_lbmd, last_epoch=last_epoch)
 

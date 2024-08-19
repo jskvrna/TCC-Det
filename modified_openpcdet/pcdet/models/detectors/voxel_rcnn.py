@@ -1,9 +1,15 @@
+# Modified by: Jan Skvrna for the purpose of the TCC-Det
+# Modified parts are marked with the comment: # Start TCC-Det and # End TCC-Det
+
 from .detector3d_template import Detector3DTemplate
 
 
 class VoxelRCNN(Detector3DTemplate):
     def __init__(self, model_cfg, num_class, dataset):
         super().__init__(model_cfg=model_cfg, num_class=num_class, dataset=dataset)
+        # Start TCC-Det
+        self.use_roi_head = model_cfg.ROI_HEAD.get('USE_ROI_HEAD', True)
+        # End TCC-Det
         self.module_list = self.build_networks()
 
     def forward(self, batch_dict):
@@ -24,11 +30,15 @@ class VoxelRCNN(Detector3DTemplate):
     def get_training_loss(self):
         disp_dict = {}
         loss = 0
-        
-        loss_rpn, tb_dict = self.dense_head.get_loss()
-        loss_rcnn, tb_dict = self.roi_head.get_loss(tb_dict)
 
-        loss = loss + loss_rpn + loss_rcnn
+        loss_rpn, tb_dict = self.dense_head.get_loss()
+        # Start TCC-Det
+        if self.use_roi_head:
+            loss_rcnn, tb_dict = self.roi_head.get_loss(tb_dict)
+            loss = loss + loss_rpn + loss_rcnn
+        else:
+            loss = loss + loss_rpn
+        # End TCC-Det
         
         if hasattr(self.backbone_3d, 'get_loss'):
             loss_backbone3d, tb_dict = self.backbone_3d.get_loss(tb_dict)

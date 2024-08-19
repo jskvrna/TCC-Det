@@ -1,3 +1,6 @@
+# Modified by: Jan Skvrna for the purpose of the TCC-Det
+# Modified parts are marked with the comment: # Start TCC-Det and # End TCC-Det
+
 import copy
 import numpy as np
 import torch
@@ -10,7 +13,9 @@ from functools import partial
 
 
 class SeparateHead(nn.Module):
-    def __init__(self, input_channels, sep_head_dict, init_bias=-2.19, use_bias=False, norm_func=None):
+    # Start TCC-Det
+    def __init__(self, input_channels, sep_head_dict, init_bias=-2.19, use_bias=False, norm_func=None, custom_loader=None):
+    # End TCC-Det
         super().__init__()
         self.sep_head_dict = sep_head_dict
 
@@ -47,8 +52,10 @@ class SeparateHead(nn.Module):
 
 
 class CenterHead(nn.Module):
+    # Start TCC-Det
     def __init__(self, model_cfg, input_channels, num_class, class_names, grid_size, point_cloud_range, voxel_size,
-                 predict_boxes_when_training=True):
+                 predict_boxes_when_training=True, custom_loader=None):
+    # End TCC-Det
         super().__init__()
         self.model_cfg = model_cfg
         self.num_class = num_class

@@ -1,14 +1,20 @@
+# Modified by: Jan Skvrna for the purpose of the TCC-Det
+# Modified parts are marked with the comment: # Start TCC-Det and # End TCC-Det
+
 import copy
 import pickle
-
 import numpy as np
 from skimage import io
+# Start TCC-Det
+import yaml
+import importlib
+import sys
+# End TCC-Det
 
 from . import kitti_utils
 from ...ops.roiaware_pool3d import roiaware_pool3d_utils
 from ...utils import box_utils, calibration_kitti, common_utils, object3d_kitti
 from ..dataset import DatasetTemplate
-
 
 class KittiDataset(DatasetTemplate):
     def __init__(self, dataset_cfg, class_names, training=True, root_path=None, logger=None):
@@ -31,6 +37,16 @@ class KittiDataset(DatasetTemplate):
 
         self.kitti_infos = []
         self.include_kitti_data(self.mode)
+
+        # Start TCC-Det
+        with open(dataset_cfg.CUSTOM_LOADER_CONFIG, 'r') as file:
+            data = yaml.safe_load(file)
+        sys.path.append(data['paths']['tcc_det'] + '3D_loss/scripts')
+        sys.path.append(data['paths']['tcc_det'] + '3d/scripts')
+
+        module = importlib.import_module('main_loader')
+        self.custom_loader = getattr(module, 'MainLoader')(dataset_cfg.CUSTOM_LOADER_CONFIG)
+        #
 
     def include_kitti_data(self, mode):
         if self.logger is not None:
@@ -369,7 +385,11 @@ class KittiDataset(DatasetTemplate):
         return len(self.kitti_infos)
 
     def __getitem__(self, index):
-        # index = 4
+        # Start TCC-Det
+        if self.use_only_one_frame != -1:
+            index = self.use_only_one_frame
+        # End TCC-Det
+
         if self._merge_all_iters_to_one_epoch:
             index = index % len(self.kitti_infos)
 
@@ -420,6 +440,12 @@ class KittiDataset(DatasetTemplate):
 
         if "calib_matricies" in get_item_list:
             input_dict["trans_lidar_to_cam"], input_dict["trans_cam_to_img"] = kitti_utils.calib_to_matricies(calib)
+
+        # Start TCC-Det
+        input_dict = self.custom_loader.load_additional_data(input_dict, sample_idx)
+        input_dict['dataset'] = 'kitti'
+        #input_dict['custom_loader'] = self.custom_loader
+        # End TCC-Det
 
         input_dict['calib'] = calib
         data_dict = self.prepare_data(data_dict=input_dict)

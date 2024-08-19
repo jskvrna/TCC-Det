@@ -1,3 +1,6 @@
+# Modified by: Jan Skvrna for the purpose of the TCC-Det
+# Modified parts are marked with the comment: # Start TCC-Det and # End TCC-Det
+
 import os
 
 import torch
@@ -9,6 +12,9 @@ from .. import backbones_2d, backbones_3d, dense_heads, roi_heads
 from ..backbones_2d import map_to_bev
 from ..backbones_3d import pfe, vfe
 from ..model_utils import model_nms_utils
+# Start TCC-Det
+import sys
+# End TCC-Det
 
 
 class Detector3DTemplate(nn.Module):
@@ -167,6 +173,9 @@ class Detector3DTemplate(nn.Module):
             point_cloud_range=model_info_dict['point_cloud_range'],
             voxel_size=model_info_dict['voxel_size'],
             num_class=self.num_class if not self.model_cfg.ROI_HEAD.CLASS_AGNOSTIC else 1,
+            # Start TCC-Det
+            dataset=self.dataset
+            # End TCC-Det
         )
 
         model_info_dict['module_list'].append(point_head_module)

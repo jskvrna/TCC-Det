@@ -1,3 +1,8 @@
+# Modified by: Jan Skvrna for the purpose of the TCC-Det
+# Modified parts are marked with the comment: # Start TCC-Det and # End TCC-Det
+# Start TCC-Det
+import numpy as np
+# End TCC-Det
 import torch
 import torch.nn as nn
 from ...ops.pointnet2.pointnet2_stack import voxel_pool_modules as voxelpool_stack_modules
@@ -6,14 +11,18 @@ from .roi_head_template import RoIHeadTemplate
 
 
 class VoxelRCNNHead(RoIHeadTemplate):
-    def __init__(self, backbone_channels, model_cfg, point_cloud_range, voxel_size, num_class=1, **kwargs):
-        super().__init__(num_class=num_class, model_cfg=model_cfg)
+    # Start TCC-Det
+    def __init__(self, backbone_channels, model_cfg, point_cloud_range, voxel_size, num_class=1, dataset=None, **kwargs):
+        super().__init__(num_class=num_class, model_cfg=model_cfg, dataset=dataset)
+        # End TCC-Det
         self.model_cfg = model_cfg
         self.pool_cfg = model_cfg.ROI_GRID_POOL
         LAYER_cfg = self.pool_cfg.POOL_LAYERS
         self.point_cloud_range = point_cloud_range
         self.voxel_size = voxel_size
-
+        # Start TCC-Det
+        self.dataset = dataset
+        # End TCC-Det
         c_out = 0
         self.roi_grid_pool_layers = nn.ModuleList()
         for src_name in self.pool_cfg.FEATURES_SOURCE:
@@ -219,6 +228,10 @@ class VoxelRCNNHead(RoIHeadTemplate):
         :param input_data: input dict
         :return:
         """
+        # Start TCC-Det
+        if not self.use_ROI_head:
+            return batch_dict
+        # End TCC-Det
 
         targets_dict = self.proposal_layer(
             batch_dict, nms_config=self.model_cfg.NMS_CONFIG['TRAIN' if self.training else 'TEST']
@@ -227,7 +240,6 @@ class VoxelRCNNHead(RoIHeadTemplate):
             targets_dict = self.assign_targets(batch_dict)
             batch_dict['rois'] = targets_dict['rois']
             batch_dict['roi_labels'] = targets_dict['roi_labels']
-
         # RoI aware pooling
         pooled_features = self.roi_grid_pool(batch_dict)  # (BxN, 6x6x6, C)
 
@@ -257,6 +269,16 @@ class VoxelRCNNHead(RoIHeadTemplate):
             targets_dict['rcnn_cls'] = rcnn_cls
             targets_dict['rcnn_reg'] = rcnn_reg
 
+            # Start TCC-Det
+            batch_cls_preds, batch_box_preds = self.generate_predicted_boxes(
+                batch_size=batch_dict['batch_size'], rois=batch_dict['rois'].clone().detach(), cls_preds=rcnn_cls, box_preds=rcnn_reg
+            )
+
+            targets_dict['batch_cls_preds_RCNN'] = batch_cls_preds
+            targets_dict['batch_box_preds_RCNN'] = batch_box_preds
+
             self.forward_ret_dict = targets_dict
+            self.batch_dict = batch_dict
+            # End TCC-Det
 
         return batch_dict

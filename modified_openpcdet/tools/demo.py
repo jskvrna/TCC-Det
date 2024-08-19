@@ -1,3 +1,6 @@
+# Modified by: Jan Skvrna for the purpose of the TCC-Det
+# Modified parts are marked with the comment: # Start TCC-Det and # End TCC-Det
+
 import argparse
 import glob
 from pathlib import Path
@@ -18,10 +21,14 @@ from pcdet.config import cfg, cfg_from_yaml_file
 from pcdet.datasets import DatasetTemplate
 from pcdet.models import build_network, load_data_to_gpu
 from pcdet.utils import common_utils
-
+# Start TCC-Det
+from pcdet.datasets import WaymoDataset
+# End TCC-Det
 
 class DemoDataset(DatasetTemplate):
-    def __init__(self, dataset_cfg, class_names, training=True, root_path=None, logger=None, ext='.bin'):
+    # Start TCC-Det
+    def __init__(self, dataset_cfg, class_names, training=True, root_path=None, logger=None, ext='.npy'):
+    # End TCC-Det
         """
         Args:
             root_path:
@@ -48,6 +55,10 @@ class DemoDataset(DatasetTemplate):
             points = np.fromfile(self.sample_file_list[index], dtype=np.float32).reshape(-1, 4)
         elif self.ext == '.npy':
             points = np.load(self.sample_file_list[index])
+            # Start TCC-Det
+            points_all, NLZ_flag = points[:, 0:5], points[:, 5]
+            points = points_all[NLZ_flag == -1]
+            # End TCC-Det
         else:
             raise NotImplementedError
 
@@ -67,8 +78,9 @@ def parse_config():
     parser.add_argument('--data_path', type=str, default='demo_data',
                         help='specify the point cloud data file or directory')
     parser.add_argument('--ckpt', type=str, default=None, help='specify the pretrained model')
-    parser.add_argument('--ext', type=str, default='.bin', help='specify the extension of your point cloud data file')
-
+    # Start TCC-Det
+    parser.add_argument('--ext', type=str, default='.npy', help='specify the extension of your point cloud data file')
+    # End TCC-Det
     args = parser.parse_args()
 
     cfg_from_yaml_file(args.cfg_file, cfg)
@@ -80,10 +92,12 @@ def main():
     args, cfg = parse_config()
     logger = common_utils.create_logger()
     logger.info('-----------------Quick Demo of OpenPCDet-------------------------')
-    demo_dataset = DemoDataset(
+    # Start TCC-Det
+    demo_dataset = WaymoDataset(
         dataset_cfg=cfg.DATA_CONFIG, class_names=cfg.CLASS_NAMES, training=False,
-        root_path=Path(args.data_path), ext=args.ext, logger=logger
+        root_path=Path(args.data_path), logger=logger
     )
+    # End TCC-Det
     logger.info(f'Total number of samples: \t{len(demo_dataset)}')
 
     model = build_network(model_cfg=cfg.MODEL, num_class=len(cfg.CLASS_NAMES), dataset=demo_dataset)
@@ -92,15 +106,22 @@ def main():
     model.eval()
     with torch.no_grad():
         for idx, data_dict in enumerate(demo_dataset):
+            # Start TCC-Det
+            if idx % 50 != 0:
+                continue
+            # End TCC-Det
             logger.info(f'Visualized sample index: \t{idx + 1}')
             data_dict = demo_dataset.collate_batch([data_dict])
             load_data_to_gpu(data_dict)
             pred_dicts, _ = model.forward(data_dict)
+            # Start TCC-Det
+            labels = pred_dicts[0]['pred_labels']
 
             V.draw_scenes(
-                points=data_dict['points'][:, 1:], ref_boxes=pred_dicts[0]['pred_boxes'],
-                ref_scores=pred_dicts[0]['pred_scores'], ref_labels=pred_dicts[0]['pred_labels']
+                points=data_dict['points'][:, 1:], ref_boxes=pred_dicts[0]['pred_boxes'][labels == 1],
+                ref_scores=pred_dicts[0]['pred_scores'][labels == 1], ref_labels=pred_dicts[0]['pred_labels'][labels == 1]
             )
+            # End TCC-Det
 
             if not OPEN3D_FLAG:
                 mlab.show(stop=True)

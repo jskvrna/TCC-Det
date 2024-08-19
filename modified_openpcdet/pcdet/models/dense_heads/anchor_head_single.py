@@ -1,3 +1,6 @@
+# Modified by: Jan Skvrna for the purpose of the TCC-Det
+# Modified parts are marked with the comment: # Start TCC-Det and # End TCC-Det
+
 import numpy as np
 import torch.nn as nn
 
@@ -47,6 +50,12 @@ class AnchorHeadSingle(AnchorHeadTemplate):
         cls_preds = cls_preds.permute(0, 2, 3, 1).contiguous()  # [N, H, W, C]
         box_preds = box_preds.permute(0, 2, 3, 1).contiguous()  # [N, H, W, C]
 
+        # Start TCC-Det
+        if self.disable_extent:
+            box_preds[:, :, :, 3:6] = 0.
+            box_preds[:, :, :, 10:13] = 0.
+        # End TCC-Det
+
         self.forward_ret_dict['cls_preds'] = cls_preds
         self.forward_ret_dict['box_preds'] = box_preds
 
@@ -70,6 +79,12 @@ class AnchorHeadSingle(AnchorHeadTemplate):
             )
             data_dict['batch_cls_preds'] = batch_cls_preds
             data_dict['batch_box_preds'] = batch_box_preds
+            # Start TCC-Det
+            data_dict['batch_cls_preds_anchors'] = batch_cls_preds
+            data_dict['batch_box_preds_anchors'] = batch_box_preds
+            # End TCC-Det
             data_dict['cls_preds_normalized'] = False
-
+        # Start TCC-Det
+        self.data_dict = data_dict
+        # End TCC-Det
         return data_dict

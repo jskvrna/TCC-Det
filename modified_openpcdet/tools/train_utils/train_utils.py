@@ -1,3 +1,6 @@
+# Modified by: Jan Skvrna for the purpose of the TCC-Det
+# Modified parts are marked with the comment: # Start TCC-Det and # End TCC-Det
+
 import os
 
 import torch
@@ -72,6 +75,7 @@ def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, ac
         avg_forward_time = commu_utils.average_reduce_value(cur_forward_time)
         avg_batch_time = commu_utils.average_reduce_value(cur_batch_time)
 
+
         # log to console and tensorboard
         if rank == 0:
             batch_size = batch.get('batch_size', None)
@@ -85,7 +89,7 @@ def train_one_epoch(model, optimizer, train_loader, model_func, lr_scheduler, ac
                 'loss': loss.item(), 'lr': cur_lr, 'd_time': f'{data_time.val:.2f}({data_time.avg:.2f})',
                 'f_time': f'{forward_time.val:.2f}({forward_time.avg:.2f})', 'b_time': f'{batch_time.val:.2f}({batch_time.avg:.2f})'
             })
-            
+
             if use_logger_to_record:
                 if accumulated_iter % logger_iter_interval == 0 or cur_it == start_it or cur_it + 1 == total_it_each_epoch:
                     trained_time_past_all = tbar.format_dict['elapsed']

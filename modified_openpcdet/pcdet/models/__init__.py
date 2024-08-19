@@ -1,3 +1,6 @@
+# Modified by: Jan Skvrna for the purpose of the TCC-Det
+# Modified parts are marked with the comment: # Start TCC-Det and # End TCC-Det
+
 from collections import namedtuple
 
 import numpy as np
@@ -26,8 +29,10 @@ def load_data_to_gpu(batch_dict):
             batch_dict[key] = val.cuda()
         elif not isinstance(val, np.ndarray):
             continue
-        elif key in ['frame_id', 'metadata', 'calib', 'image_paths','ori_shape','img_process_infos']:
+        # Start TCC-Det
+        elif key in ['frame_id', 'metadata', 'calib', 'image_paths','ori_shape','img_process_infos', 'dataset']:
             continue
+        # End TCC-Det
         elif key in ['images']:
             batch_dict[key] = kornia.image_to_tensor(val).float().cuda().contiguous()
         elif key in ['image_shape']:

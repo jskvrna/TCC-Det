@@ -1,3 +1,6 @@
+# Modified by: Jan Skvrna for the purpose of the TCC-Det
+# Modified parts are marked with the comment: # Start TCC-Det and # End TCC-Det
+
 from collections import defaultdict
 from pathlib import Path
 
@@ -40,6 +43,18 @@ class DatasetTemplate(torch_data.Dataset):
         self.voxel_size = self.data_processor.voxel_size
         self.total_epochs = 0
         self._merge_all_iters_to_one_epoch = False
+
+        # Start TCC-Det
+        try:
+            self.use_aug = self.dataset_cfg.DATA_AUGMENTOR.USE_DATA_AUG
+        except:
+            self.use_aug = False
+
+        try:
+            self.use_only_one_frame = self.dataset_cfg.DATA_AUGMENTOR.USE_ONE_FRAME
+        except:
+            self.use_only_one_frame = -1
+        # End TCC-Det
 
         if hasattr(self.data_processor, "depth_downsample_factor"):
             self.depth_downsample_factor = self.data_processor.depth_downsample_factor
@@ -182,12 +197,15 @@ class DatasetTemplate(torch_data.Dataset):
             
             if 'calib' in data_dict:
                 calib = data_dict['calib']
-            data_dict = self.data_augmentor.forward(
-                data_dict={
-                    **data_dict,
-                    'gt_boxes_mask': gt_boxes_mask
-                }
-            )
+            # Start TCC-Det
+            if self.use_aug:
+                data_dict = self.data_augmentor.forward(
+                    data_dict={
+                        **data_dict,
+                        'gt_boxes_mask': gt_boxes_mask
+                    }
+                )
+            # End TCC-Det
             if 'calib' in data_dict:
                 data_dict['calib'] = calib
         data_dict = self.set_lidar_aug_matrix(data_dict)
@@ -315,6 +333,12 @@ class DatasetTemplate(torch_data.Dataset):
                     ret[key] = np.stack(points, axis=0)
                 elif key in ['camera_imgs']:
                     ret[key] = torch.stack([torch.stack(imgs,dim=0) for imgs in val],dim=0)
+                # Start TCC-Det
+                elif key in ['lidars', 'masks', 'moving_angles', 'locations', 'moving']:
+                    ret[key] = val
+                elif key in ['dataset']:
+                    ret[key] = val[0]
+                # End TCC-Det
                 else:
                     ret[key] = np.stack(val, axis=0)
             except:

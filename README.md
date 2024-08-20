@@ -64,7 +64,7 @@ If your machine is running Windows, please use the WSL2 with Ubuntu 22.04 LTS.
     ```bash
     python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
     ```
-3. **Build the [Pytorch3D](https://github.com/facebookresearch/pytorch3d/tree/main) library from source:**
+4. **Build the [Pytorch3D](https://github.com/facebookresearch/pytorch3d/tree/main) library from source:**
    ```bash
    git clone https://github.com/facebookresearch/pytorch3d.git
    cd pytorch3d && pip install -e .
@@ -73,21 +73,90 @@ If your machine is running Windows, please use the WSL2 with Ubuntu 22.04 LTS.
    ```bash
    cd pytorch3d && MAX_JOBS=4 pip install -e .
    ```
-4. **Install the [OpenPCDet](https://github.com/open-mmlab/OpenPCDet) library:**
+5. **Install the [OpenPCDet](https://github.com/open-mmlab/OpenPCDet) library:**
    ```bash
-   cd modified_openpcdet
-   python setup.py develop
+   cd ..
+   git clone https://github.com/open-mmlab/OpenPCDet.git
+   cd OpenPCDet && python setup.py develop
    ```
    Again, if the build is killed, limit the number of jobs:
    ```bash
-   MAX_JOBS=4 python setup.py develop
+   cd OpenPCDet && MAX_JOBS=4 python setup.py develop
    ```
-5. **Install the [Waymo Open Dataset](https://github.com/waymo-research/waymo-open-dataset) library:**
+6. **Install the [Waymo Open Dataset](https://github.com/waymo-research/waymo-open-dataset) library:**
    ```bash
    pip install waymo-open-dataset-tf-2-11-0==1.6.1
    ```
    Unfortunately, there is some dependency issues within the packages, so please ignore the warnings from pip.
 ---
 
+## Getting started
+
+1. **Download the Dataset:**
+   - The location of the datasets is not specified. Preferably, save it to the `data` folder of the [OpenPCDet](https://github.com/open-mmlab/OpenPCDet).
+   - **KITTI**: Download the KITTI dataset from the [official website](http://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=3d) and extract the data to the `KITTI` folder.
+     - Unpack as following:
+       ```
+       KITTI/
+       ├── complete_sequences
+       │   ├── 2011_09_26
+       │   └── ...
+       └── object_detection
+           ├── devkit_object
+           ├── testing
+           │    ├── calib
+           │    ├── image_2
+           │    ├── image_3
+           │    └── velodyne     
+           └── training
+                ├── calib
+                ├── image_2
+                ├── image_3
+                ├── label_2
+                └── velodyne  
+       ```
+     - Specify the path in `pseudo_gt_generator/3d/configs/config.yaml` file.
+   - **Waymo Open**: Download the Waymo Open dataset from the [official website](https://waymo.com/open/download/) and extract the data to the `waymo` folder.
+        - Unpack as following:
+        ```
+         waymo/
+            └── raw_data
+                ├── segment-xxxx.tfrecord
+                └── ...
+
+        ```
+     - Specify the path in `pseudo_gt_generator/3d/configs/config.yaml` file.
+---
+2. **Modify the config files:**
+   1. `pseudo_gt_generator/3d/configs/config.yaml`: Modify the following (Marked as TODO):
+      - `kitti_path` and `waymo_path` to the path of the datasets.
+      - `detectron_config` and `model_path`.
+      - `merged_frames_path`, `labels_path` and `optimized_cars_path`, those serve as output folders.
+   2. `pseudo_gt_generator/3D_loss/configs/config.yaml`: Modify the following (Marked as TODO):
+      - `kitti` to the path of the dataset.
+      - `tcc_det` path to the pseudo_gt_generator.
+      - `merged_frames` path to the merged frames.
+   3. `modified_openpcdet/tools/cfgs/dataset_configs/kitti_dataset.py`: Modify the following (Marked as TODO):
+      - `CUSTOM_LOADER_CONFIG` path to the pseudo_gt_generator 3D_loss config.
+---   
+3. **Create the pseudo ground truth labels:**
+   ```bash
+    cd pseudo_gt_generator/3d/
+    python main.py --dataset kitti --config configs/config.yaml --action transformations 
+   ```
+   - Possible values:
+     - `--dataset`: `kitti` or `waymo`.
+     - `--config`: Path to the config file.
+     - `--action`: `lidar_scans`, `transformations`, `mask_tracking`, `frames_aggregation`, `optimization`.
+     
+   - The process can take a long time, depending on the dataset size, the number of frames and cpu and gpu count.
+   - To speed up the process, this can be parallelized by running the script multiple times with different `--seq_start` and `--seq_end`, which specifies which sequences should be done with this script instance.
+---
+4. **Train on the pseudo ground truth labels:**
+   1. Copy the pseudo ground truth labels to the OpenPCDet dataset folder with `label_replacer.py` script.
+      - It has two arguments: path to the data/kitti folder and path to the pseudo ground truth labels.
+5. 
+
+---
 ## Citation
 TODO

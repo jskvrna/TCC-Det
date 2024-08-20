@@ -14,7 +14,7 @@
 
 ---
 
-## Abstract
+# Abstract
 
 Accurate object detection in LiDAR point clouds is a key prerequisite of robust and safe autonomous driving and robotics applications. Training the 3D object detectors currently involves  the need to manually annotate vasts amounts of training data, which is very time-consuming and costly. As a result, the amount of annotated training data readily available is limited, and moreover these annotated datasets likely do not contain edge-case or otherwise rare instances, simply because the probability of them occurring in such a small dataset is low.
 
@@ -24,7 +24,7 @@ The method is evaluated on KITTI and Waymo Open datasets, where it outperforms a
 
 ---
 
-## Method
+# Method
 
 Code is divided into two main parts:
 1. **Pseudo Ground Truth generator**: This part is further divided into multiple steps:
@@ -42,6 +42,20 @@ For more details, please refer to the [paper](TODO).
 ![Method Image](figures/pipeline_weakly2.webp)
 
 <figcaption>Figure 2: Training pipeline of the weakly-supervised 3D object detector relying on 2D detections and shape prior hypotheses.</figcaption>
+
+---
+
+# Results
+
+In the following table we provide comparsion with the weakly-supervised (TCC-Det) and fully-supervised Voxel-RCNN. 
+
+For more details, please refer to the [paper](TODO).
+
+| KITTI Val Car                 |   0.5/0.7   |  BEV AP   |           |   3D AP   |           |           |
+|-------------------------------|:-----------:|:---------:|:---------:|:---------:|:---------:|:---------:|
+|                               |    Easy     | Moderate  |   Hard    |   Easy    | Moderate  |   Hard    |
+| Voxel-RCNN (Fully-supervised) |     x/x     |    x/x    |    x/x    |  x/89.4   |  x/86.6   |  x/79.5   |
+| TCC-Det (Weakly-Supervised)   |  98.9/90.1  | 89.6/88.3 | 89.1/87.0 | 98.8/85.9 | 89.5/75.3 | 89.0/73.7 |
 
 ---
 

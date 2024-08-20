@@ -6,7 +6,7 @@
 
 **Affiliation: [Visual Recognition Group at Czech Technical University in Prague](https://cyber.felk.cvut.cz/research/groups-teams/vrg/)**
 
-Link to the paper: [ECCV2024](TODO)
+**Link to the paper: [ECCV2024](TODO)**
 
 ![Intro Image](figures/intro_image.webp)
 
@@ -60,6 +60,10 @@ If your machine is running Windows, please use the WSL2 with Ubuntu 22.04 LTS.
    cd TCC-Det/
    pip install -r requirements.txt
    ```
+3. **Install the [Detectron2](https://github.com/facebookresearch/detectron2) library:**
+    ```bash
+    python -m pip install 'git+https://github.com/facebookresearch/detectron2.git'
+    ```
 3. **Build the [Pytorch3D](https://github.com/facebookresearch/pytorch3d/tree/main) library from source:**
    ```bash
    git clone https://github.com/facebookresearch/pytorch3d.git
@@ -67,22 +71,22 @@ If your machine is running Windows, please use the WSL2 with Ubuntu 22.04 LTS.
    ```
    If the build fails, because the cc1plus is killed, limit the number of jobs:
    ```bash
-   cd pytorch3d && MAX_JOBS=2 pip install -e .
+   cd pytorch3d && MAX_JOBS=4 pip install -e .
    ```
-4. **Install the [Waymo Open Dataset](https://github.com/waymo-research/waymo-open-dataset) library:**
-   ```bash
-   pip install waymo-open-dataset-tf-2-11-0==1.6.1
-   ```
-   Unfortunately, there is some dependency issues within the packages, so please ignore the warnings from pip.
-3. **Install the [OpenPCDet](https://github.com/open-mmlab/OpenPCDet) library:**
+4. **Install the [OpenPCDet](https://github.com/open-mmlab/OpenPCDet) library:**
    ```bash
    cd modified_openpcdet
    python setup.py develop
    ```
    Again, if the build is killed, limit the number of jobs:
    ```bash
-   MAX_JOBS=2 python setup.py develop
+   MAX_JOBS=4 python setup.py develop
    ```
+5. **Install the [Waymo Open Dataset](https://github.com/waymo-research/waymo-open-dataset) library:**
+   ```bash
+   pip install waymo-open-dataset-tf-2-11-0==1.6.1
+   ```
+   Unfortunately, there is some dependency issues within the packages, so please ignore the warnings from pip.
 ---
 
 ## Citation

@@ -54,10 +54,12 @@ If your machine is running Windows, please use the WSL2 with Ubuntu 22.04 LTS.
 1. **Clone the repository:**
    ```bash
    git clone https://github.com/jskvrna/TCC-Det.git
+   ```
 2. **Install the requirements:**
    ```bash
    cd TCC-Det/
    pip install -r requirements.txt
+   ```
 3. **Build the [Pytorch3D](https://github.com/facebookresearch/pytorch3d/tree/main) library from source:**
    ```bash
    git clone https://github.com/facebookresearch/pytorch3d.git
@@ -66,11 +68,12 @@ If your machine is running Windows, please use the WSL2 with Ubuntu 22.04 LTS.
    If the build fails, because the cc1plus is killed, limit the number of jobs:
    ```bash
    cd pytorch3d && MAX_JOBS=2 pip install -e .
+   ```
 4. **Install the [Waymo Open Dataset](https://github.com/waymo-research/waymo-open-dataset) library:**
    ```bash
    pip install waymo-open-dataset-tf-2-11-0==1.6.1
    ```
-   Unfortunately, there is some dependency issues within the packages, so ignore the warnings from pip.
+   Unfortunately, there is some dependency issues within the packages, so please ignore the warnings from pip.
 3. **Install the [OpenPCDet](https://github.com/open-mmlab/OpenPCDet) library:**
    ```bash
    cd modified_openpcdet
@@ -79,6 +82,7 @@ If your machine is running Windows, please use the WSL2 with Ubuntu 22.04 LTS.
    Again, if the build is killed, limit the number of jobs:
    ```bash
    MAX_JOBS=2 python setup.py develop
+   ```
 ---
 
 ## Citation

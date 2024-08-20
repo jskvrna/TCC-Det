@@ -47,17 +47,11 @@ For more details, please refer to the [paper](TODO).
 
 # Results
 
-In the following table we provide comparsion with the weakly-supervised (TCC-Det) and fully-supervised Voxel-RCNN. 
+In the following table we provide comparison with the weakly-supervised (TCC-Det) and fully-supervised Voxel-RCNN on the KITTI validation set. 
 
 For more details, please refer to the [paper](TODO).
 
-| KITTI Val Car                 |   0.5/0.7   |  BEV AP   |           |   3D AP   |           |           |
-|-------------------------------|:-----------:|:---------:|:---------:|:---------:|:---------:|:---------:|
-|                               |    Easy     | Moderate  |   Hard    |   Easy    | Moderate  |   Hard    |
-| Voxel-RCNN (Fully-supervised) |     x/x     |    x/x    |    x/x    |  x/89.4   |  x/86.6   |  x/79.5   |
-| TCC-Det (Weakly-Supervised)   |  98.9/90.1  | 89.6/88.3 | 89.1/87.0 | 98.8/85.9 | 89.5/75.3 | 89.0/73.7 |
-
----
+![Results Table](figures/table.png)
 
 # Inference
 

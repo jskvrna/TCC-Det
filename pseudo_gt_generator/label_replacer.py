@@ -25,14 +25,14 @@ with open(txt_file, 'r') as file:
     indexes = [line.strip() for line in file]
 
 # Iterate over the files in the original folder
-for filename in os.listdir(original_folder + '/label_2'):
+for filename in os.listdir(original_folder + '/training/label_2'):
     # Extract the index from the filename
     index = os.path.splitext(filename)[0]
 
     # Check if the index is in the list of indexes
     if index in indexes:
         # Construct the paths to the original and replacement files
-        original_path = os.path.join(original_folder + '/label_2/', filename)
+        original_path = os.path.join(original_folder + '/training/label_2/', filename)
         replacement_path = os.path.join(replacement_folder, filename)
 
         # Replace the file

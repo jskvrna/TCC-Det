@@ -45,7 +45,67 @@ For more details, please refer to the [paper](TODO).
 
 ---
 
+# Inference
+
 ## Installation
+
+To run the inference of our trained model, please follow the steps below. 
+
+We recommend using the conda environment. Specifically the Python 3.10.14 version and CUDA 11.7.0 is recommended. Python 3.8 and 3.9 should work also fine.
+
+If your machine is running Windows, please use the WSL2 with Ubuntu 22.04 LTS.
+
+Unfortunately, due to license restrictions, we cannot provide the model for the Waymo Open dataset. However, the model can be trained using the provided code.
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/jskvrna/TCC-Det.git
+   ```
+2. **Install the requirements:**
+   ```bash
+   cd TCC-Det/
+   pip install -r requirements.txt
+   ```
+3. **Install the [OpenPCDet](https://github.com/open-mmlab/OpenPCDet) library:**
+   ```bash
+   cd ..
+   git clone https://github.com/open-mmlab/OpenPCDet.git
+   cd OpenPCDet && python setup.py develop
+   ```
+   If the build is killed, limit the number of jobs:
+   ```bash
+   cd OpenPCDet && MAX_JOBS=4 python setup.py develop
+   ```
+4. Download the trained model from the [link](https://drive.google.com/file/d/13TsmFClUtDuTv3MvunrzaNGL0c58AT74/view?usp=drive_link) and save it to the `OpenPCDet/output` folder.
+5. Prepare the dataset.
+   1. Download the KITTI dataset into the `OpenPCDet/data/kitti/` folder from the [official website](http://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=3d) and extract it as follows:
+       ```
+       kitti
+       ├── ImageSets
+       ├── testing
+       │   ├── calib
+       │   ├── image_2
+       │   ├── image_3
+       │   └── velodyne  
+       └── training
+           ├── calib
+           ├── image_2
+           ├── image_3
+           ├── label_2
+           └── velodyne
+       ```
+6. Run the inference!:
+    ```bash
+    cd OpenPCDet/tools
+    python demo.py --cfg_file cfgs/kitti_models/voxel_rcnn_car.yaml --ckpt ../output/TCC-det_voxelRCNN.pth --data_path ../data/kitti/testing/velodyne/*.bin
+    ```
+    - Please modify the `ckpt`, `data_path` and `data_path` as needed.
+---
+# Training
+
+## Installation
+
+To perform the whole training process, please follow the steps below.
 
 We recommend using the conda environment. Specifically the Python 3.10.14 version and CUDA 11.7.0 is recommended. Python 3.8 and 3.9 should work also fine.
 
@@ -142,7 +202,8 @@ If your machine is running Windows, please use the WSL2 with Ubuntu 22.04 LTS.
 3. **Create the pseudo ground truth labels:**
    ```bash
     cd pseudo_gt_generator/3d/
-    python main.py --dataset kitti --config configs/config.yaml --action transformations 
+    python main.py --dataset kitti --config configs/config.yaml --action transformations
+    cd ../../ 
    ```
    - Possible values:
      - `--dataset`: `kitti` or `waymo`.
@@ -153,10 +214,56 @@ If your machine is running Windows, please use the WSL2 with Ubuntu 22.04 LTS.
    - To speed up the process, this can be parallelized by running the script multiple times with different `--seq_start` and `--seq_end`, which specifies which sequences should be done with this script instance.
 ---
 4. **Train on the pseudo ground truth labels:**
-   1. Copy the pseudo ground truth labels to the OpenPCDet dataset folder with `label_replacer.py` script.
+   1. Prepare the dataset for training as stated in [OpenPCDet](https://github.com/open-mmlab/OpenPCDet/blob/master/docs/GETTING_STARTED.md)
+   2. Copy the pseudo ground truth labels to the [OpenPCDet](https://github.com/open-mmlab/OpenPCDet) dataset folder with `label_replacer.py` script.
       - It has two arguments: path to the data/kitti folder and path to the pseudo ground truth labels.
-5. 
+   3. Prepare the labels for training with `label_preparation.py`script.
+      - It has one argument: path to the data/kitti folder.
+   4. Prepare the dataset with the following script:
+      ```bash
+      cd OpenPCDet
+      python -m pcdet.datasets.kitti.kitti_dataset create_kitti_infos tools/cfgs/dataset_configs/kitti_dataset.yaml
+      ```
+   5. Run the training with the following command:
+        ```bash
+        cd tools
+        python train.py --cfg_file cfgs/kitti_models/voxel_rcnn_car.yaml --batch size 25 --epochs 50 --extra_tag tcc_det
+        cd ../../  
+      ```
+      - Please modify the `batch_size`, `epochs` and `extra_tag` as needed.
+   6. To retrieve the results, open the `OpenPCDet/output` folder.
+---
+5. **Fine-tune training using the additional losses TFL and AML:**
+   1. Prepare the dataset for training as stated in [OpenPCDet](https://github.com/open-mmlab/OpenPCDet/blob/master/docs/GETTING_STARTED.md).
+   2. Copy the pseudo ground truth labels to the modified_openpcdet dataset folder with `label_replacer.py` script.
+      - It has two arguments: path to the data/kitti folder and path to the pseudo ground truth labels.
+   3. Prepare the labels for training with `label_preparation.py`script.
+      - It has one argument: path to the data/kitti folder.
+   4. Prepare the dataset with the following script:
+      ```bash
+      cd modified_openpcdet
+      python -m pcdet.datasets.kitti.kitti_dataset create_kitti_infos tools/cfgs/dataset_configs/kitti_dataset.yaml
+      ``` 
+   5. Run the training with the following command:
+        ```bash
+        cd tools
+        python train.py --cfg_file cfgs/kitti_models/voxel_rcnn_car.yaml  --pretrained_model ../../OpenPCDet/output/kitti_models/voxel_rccn_car/tcc_det/ckpt/checkpoint_epoch_50.pth --batch size 2 --epochs 10 --extra_tag tcc_det
+        cd ../../  
+      ```
+      - Please modify the `batch_size`, `epochs` and `extra_tag` as needed.
+      - The `pretrained_model` argument specifies the path to the pretrained model from the previous step.
 
 ---
+
+## Additional Notes
+
+This repository contains the newer version of the data handling/format in the frames aggregation, so there might be some bugs. Sorry for that, however the newer format is much more simplier and readable.
+
+Waymo Open Dataset is not yet fully implemented in the modified_openpcdet, due to the change of the data handling/format.
+
+Feel free to reach out and submit all issues and bugs!
+
+---
+
 ## Citation
 TODO

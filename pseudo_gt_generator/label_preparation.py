@@ -34,5 +34,5 @@ if len(sys.argv) < 2:
     print("Please provide the folder path as following: Argument1 = path to openpcdet labels")
     sys.exit(1)
 
-folder_path = sys.argv[1]
+folder_path = sys.argv[1] + "/training/label_2/"
 process_txt_files(folder_path)

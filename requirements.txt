@@ -1,0 +1,17 @@
+--extra-index-url https://download.pytorch.org/whl/cu117
+
+torch==1.13.0+cu117
+torchvision==0.14.0+cu117
+torchaudio==0.13.0
+
+git+https://github.com/facebookresearch/detectron2.git
+
+open3d~=0.18.0
+point-cloud-utils~=0.30.4
+faiss-cpu~=1.8.0.post1
+zstd~=1.5.5.1
+kornia~=0.6.0
+opencv-python~=4.10.0.84
+pyntcloud~=0.3.1
+pykitti~=0.3.1
+spconv-cu117~=2.3.6

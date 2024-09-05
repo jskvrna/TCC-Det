@@ -1622,11 +1622,22 @@ class Loader(AutoLabel3D):
                 continue
             else:
                 bbox_ref_center = [cars[indx].x, cars[indx].y, cars[indx].z]
-                bbox_ref_size = [cars[indx].length, cars[indx].width, cars[indx].height]
+                if self.args.dataset == 'kitti':
+                    bbox_ref_size = [cars[indx].width, cars[indx].height, cars[indx].length]
+                elif self.args.dataset == 'waymo':
+                    bbox_ref_size = [cars[indx].length, cars[indx].width, cars[indx].height]
+                else:
+                    raise ValueError('Dataset not supported')
                 bbox_ref_theta = cars[indx].theta
 
                 scaled_cube = np.diag(bbox_ref_size).dot(self.unit_cube.T).T
-                rotation = R.from_euler('z', bbox_ref_theta, degrees=False)
+                if self.args.dataset == 'kitti':
+                    rotation = R.from_euler('y', bbox_ref_theta, degrees=False)
+                elif self.args.dataset == 'waymo':
+                    rotation = R.from_euler('z', bbox_ref_theta, degrees=False)
+                else:
+                    raise ValueError('Dataset not supported')
+
                 rotated_cube = rotation.apply(scaled_cube)
                 bbox_ref_points = rotated_cube + bbox_ref_center
 
@@ -1635,15 +1646,27 @@ class Loader(AutoLabel3D):
                         continue
                     else:
                         bbox_cur_center = [cars[i].x, cars[i].y, cars[i].z]
-                        bbox_cur_size = [cars[i].length, cars[i].width, cars[i].height]
+                        if self.args.dataset == 'kitti':
+                            bbox_cur_size = [cars[i].width, cars[i].height, cars[i].length]
+                        elif self.args.dataset == 'waymo':
+                            bbox_cur_size = [cars[i].length, cars[i].width, cars[i].height]
+                        else:
+                            raise ValueError('Dataset not supported')
                         bbox_cur_theta = cars[i].theta
 
                         scaled_cube = np.diag(bbox_cur_size).dot(self.unit_cube.T).T
-                        rotation = R.from_euler('z', bbox_cur_theta, degrees=False)
+                        if self.args.dataset == 'kitti':
+                            rotation = R.from_euler('y', bbox_cur_theta, degrees=False)
+                        elif self.args.dataset == 'waymo':
+                            rotation = R.from_euler('z', bbox_cur_theta, degrees=False)
+                        else:
+                            raise ValueError('Dataset not supported')
                         rotated_cube = rotation.apply(scaled_cube)
                         bbox_cur_points = rotated_cube + bbox_cur_center
 
-                        vol, iou = pytorch3d.ops.box3d_overlap(torch.tensor(bbox_ref_points, dtype=torch.float32).unsqueeze(0), torch.tensor(bbox_cur_points, dtype=torch.float32).unsqueeze(0))
+                        vol, iou = pytorch3d.ops.box3d_overlap(
+                            torch.tensor(bbox_ref_points, dtype=torch.float32).unsqueeze(0),
+                            torch.tensor(bbox_cur_points, dtype=torch.float32).unsqueeze(0))
                         if iou[0].item() > self.cfg.optimization.nms_threshold:
                             if self.cfg.optimization.nms_merge_and_reopt:
                                 cars[indx].lidar = np.concatenate((cars[indx].lidar, cars[i].lidar), axis=1)

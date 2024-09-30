@@ -6,7 +6,7 @@
 
 **Affiliation: [Visual Recognition Group at Czech Technical University in Prague](https://cyber.felk.cvut.cz/research/groups-teams/vrg/)**
 
-**Link to the paper: [ECCV2024](TODO)**
+**Link to the paper: [ECCV2024](https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/03732.pdf)**
 
 ![Intro Image](figures/intro_image.webp)
 

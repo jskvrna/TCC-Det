@@ -37,7 +37,7 @@ Code is divided into two main parts:
    1. Using the pseudo ground truth to train the 3D object detector (OpenPCDet).
    2. Fine-tuning of the trained model on the pseudo ground truth with the additional losses (TFL and MAL).
 
-For more details, please refer to the [paper](TODO).
+For more details, please refer to the [paper](https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/03732.pdf).
 
 ![Method Image](figures/pipeline_weakly2.webp)
 
@@ -49,7 +49,7 @@ For more details, please refer to the [paper](TODO).
 
 In the following table we provide comparison with the weakly-supervised (TCC-Det) and fully-supervised Voxel-RCNN on the KITTI validation set. 
 
-For more details, please refer to the [paper](TODO).
+For more details, please refer to the [paper](https://www.ecva.net/papers/eccv_2024/papers_ECCV/papers/03732.pdf).
 
 ![Results Table](figures/table.png)
 

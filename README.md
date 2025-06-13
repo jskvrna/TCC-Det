@@ -274,4 +274,12 @@ Feel free to reach out and submit all issues and bugs!
 ---
 
 ## Citation
-TODO
+
+@inproceedings{skvrna2024tcc,
+  title={TCC-Det: Temporarily consistent cues for weakly-supervised 3D detection},
+  author={Skvrna, Jan and Neumann, Lukas},
+  booktitle={European Conference on Computer Vision},
+  pages={129--145},
+  year={2024},
+  organization={Springer}
+}
